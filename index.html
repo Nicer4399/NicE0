@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>บาคาร่า - ระบบคาดเดาผล</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+
+    h2 {
+      color: #00d4ff;
+      margin-top: 30px;
+    }
+
+    /* ปุ่มพื้นฐาน */
+    button {
+      padding: 12px 24px;
+      margin: 10px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      color: white;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      opacity: 0.9;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    /* สีปุ่มเฉพาะ */
+    .banker-btn {
+      background-color: #800000; /* แดงเลือดหมู */
+    }
+
+    .player-btn {
+      background-color: #0047ab; /* น้ำเงินเข้ม */
+    }
+
+    .correct-btn {
+      background-color: #228B22; /* เขียว */
+    }
+
+    .wrong-btn {
+      background-color: #cc0000; /* แดง */
+    }
+
+    #prediction {
+      margin-top: 30px;
+      font-size: 1.2em;
+      padding: 15px;
+      border: 1px solid #444;
+      border-radius: 10px;
+      background-color: #1a1a1a;
+      width: 320px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>บันทึกผลแพ้ชนะ</h2>
+  <button class="banker-btn" onclick="recordResult('Banker')">Banker ชนะ</button>
+  <button class="player-btn" onclick="recordResult('Player')">Player ชนะ</button>
+
+  <div id="prediction">รอข้อมูลการคาดเดา...</div>
+
+  <h2>ประเมินความแม่นยำ</h2>
+  <button class="correct-btn" onclick="evaluatePrediction(true)">ทายถูก</button>
+  <button class="wrong-btn" onclick="evaluatePrediction(false)">ทายผิด</button>
+
+  <script>
+    const history = [];
+    let lastPrediction = null;
+    let predictionAccuracy = 0;
+    let totalPredictions = 0;
+    let correctPredictions = 0;
+
+    function recordResult(winner) {
+      history.push(winner);
+      calculatePrediction();
+    }
+
+    function calculatePrediction() {
+      const count = { Banker: 0, Player: 0 };
+      history.forEach(result => count[result]++);
+
+      const total = count.Banker + count.Player;
+      const bRatio = count.Banker / total;
+      const pRatio = count.Player / total;
+
+      const adjustedBanker = (1 - bRatio) * 100;
+      const adjustedPlayer = (1 - pRatio) * 100;
+
+      const normalizedTotal = adjustedBanker + adjustedPlayer;
+      const bankerChance = (adjustedBanker / normalizedTotal * 100).toFixed(2);
+      const playerChance = (adjustedPlayer / normalizedTotal * 100).toFixed(2);
+
+      lastPrediction = bankerChance > playerChance ? 'Banker' : 'Player';
+
+      document.getElementById("prediction").innerHTML = `
+        <strong>คาดเดาผลรอบถัดไป:</strong><br>
+        Banker: ${bankerChance}%<br>
+        Player: ${playerChance}%<br>
+        <strong>ระบบคาดว่า: ${lastPrediction} จะชนะ</strong><br>
+        <em>ความแม่นยำปัจจุบัน: ${predictionAccuracy.toFixed(2)}%</em>
+      `;
+    }
+
+    function evaluatePrediction(correct) {
+      totalPredictions++;
+      if (correct) correctPredictions++;
+      predictionAccuracy = (correctPredictions / totalPredictions) * 100;
+      calculatePrediction();
+    }
+
+    setInterval(() => {
+      if (lastPrediction && totalPredictions < history.length) {
+        evaluatePrediction(false);
+      }
+    }, 10000);
+  </script>
+
+</body>
+</html>
